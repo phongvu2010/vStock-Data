@@ -30,15 +30,15 @@ class StockVNData:
         self.source = source
         self.credential = credential
 
-    def fetch_data(self, start_date: str = None, end_date: str = None, interval: str = "B"):
+    def fetch_data(self, start: str = None, end: str = None, interval: str = "B"):
         if self.source.lower() == "yfinance":
-            df = self.fetch_data_from_yfinance(start_date, end_date)
+            df = self.fetch_data_from_yfinance(start, end)
 
         elif self.source.lower() == "bigquery":
-            df = self.fetch_data_from_bigquery(start_date, end_date)
+            df = self.fetch_data_from_bigquery(start, end)
 
         elif self.source.lower() == "tcbs":
-            df = self.fetch_data_from_tcbs(start_date, end_date)
+            df = self.fetch_data_from_tcbs(start, end)
 
         else:
             raise ValueError(f"Nguồn '{self.source}' không được hỗ trợ.")
@@ -57,7 +57,7 @@ class StockVNData:
 
         return df.sort_index()
 
-    def fetch_data_from_yfinance(self, start_date = None, end_date = None):
+    def fetch_data_from_yfinance(self, start = None, end = None):
         """
             ✅ Tải dữ liệu chứng khoán từ Yahoo Finance
         """
@@ -65,13 +65,13 @@ class StockVNData:
 
         try:
             return yf.download(
-                self.symbol + ".VN", start=start_date, end=end_date,
+                self.symbol + ".VN", start=start, end=end,
                 interval="1d", period="5y", auto_adjust=True, progress=False
             )
         except Exception as e:
             raise ValueError(f"Lỗi khi tải dữ liệu từ Yahoo Finance: {str(e)}")
 
-    def fetch_data_from_bigquery(self, start_date = None, end_date = None):
+    def fetch_data_from_bigquery(self, start = None, end = None):
         """
             ✅ Tải dữ liệu chứng khoán từ BigQuery
         """
@@ -86,11 +86,11 @@ class StockVNData:
             )
 
             statment_date = ""
-            if start_date is None:
-                statment_date += " AND `Date` >= '" & start_date & "'"
+            if start is None:
+                statment_date += " AND `Date` >= '" & start & "'"
 
-            if end_date is None:
-                statment_date += " AND `Date` >= '" & end_date & "'"
+            if end is None:
+                statment_date += " AND `Date` >= '" & end & "'"
 
             dataset_id = self.credential["dataset_id"]
             query_job = client.query(f"""
@@ -115,20 +115,18 @@ class StockVNData:
         except Exception as e:
             raise ValueError(f"Lỗi khi tải dữ liệu từ BigQuery: {str(e)}")
 
-    def fetch_data_from_tcbs(self, start_date = None, end_date = None):
+    def fetch_data_from_tcbs(self, start = None, end = None):
         """
             ✅ Tải dữ liệu chứng khoán từ TCBS
         """
         import requests
 
         try:
-            if start_date is None:
-                start_date = "2000-01-01"
-            fd = int(time.mktime(dt.strptime(start_date, "%Y-%m-%d").timetuple()))
+            if start is None: start = "2000-01-01"
+            fd = int(time.mktime(dt.strptime(start, "%Y-%m-%d").timetuple()))
 
-            if end_date is None:
-                end_date = dt.now().strftime("%Y-%m-%d")
-            td = int(time.mktime(dt.strptime(end_date, "%Y-%m-%d").timetuple()))
+            if end is None: end = dt.now().strftime("%Y-%m-%d")
+            td = int(time.mktime(dt.strptime(end, "%Y-%m-%d").timetuple()))
 
             url = "https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term"
             data = requests.get(f"{url}?ticker={self.symbol}&type=stock&resolution=D&from={fd}&to={td}")

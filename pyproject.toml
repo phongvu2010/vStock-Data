@@ -2,13 +2,14 @@
 [project]
 name = "vstock-data"
 version = "0.1.0"
-authors = [
-  { name="Hunter Do", email="phongvu2010@gmail.com" }
-]
 description = "Thư viện Python tải dữ liệu chứng khoán Việt Nam từ nhiều nguồn khác nhau."
 readme = "README.md"
-requires-python = ">=3.11"
-license = { file="LICENSE" }
+requires-python = ">=3.10"
+license = {file="LICENSE"}
+authors = [{
+  name="Hunter Do",
+  email="phongvu2010@gmail.com"
+}]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
