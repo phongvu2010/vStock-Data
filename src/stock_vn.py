@@ -3,10 +3,10 @@ import pandas as pd
 import time
 
 
-class StockData:
+class StockVNData:
     def __init__(self, symbol: str, interval: str="B", source: str="yfinance", credential: dict=None):
         """
-        Khởi tạo đối tượng StockData.
+        Khởi tạo đối tượng StockVNData.
 
         Args:
             symbol (str): Mã chứng khoán (ví dụ: "FPT").
@@ -115,7 +115,7 @@ class StockData:
 
         try:
             fd = int(time.mktime(dt.date(2000, 1, 1).timetuple()))
-            td = int(time.mktime(dt.date().today().timetuple()))
+            td = int(time.mktime(dt.date.today().timetuple()))
 
             url = "https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term"
             data = requests.get(f"{url}?ticker={self.symbol}&type=stock&resolution=D&from={fd}&to={td}")

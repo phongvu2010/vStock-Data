@@ -1,0 +1,10 @@
+# Xây dựng (Build) gói thư viện
+```bash
+pip3 install build, twine
+
+```bash
+python3 -m build
+
+Tải gói thư viện lên PyPI
+```bash
+python3 -m twine upload dist/*

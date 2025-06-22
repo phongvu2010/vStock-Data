@@ -3,18 +3,12 @@
 Thư viện Python tải dữ liệu chứng khoán Việt Nam từ nhiều nguồn khác nhau.
 
 ## Cài đặt
-
 ```bash
 pip install vstock-data
 
 
-# Xây dựng (Build) gói thư viện
+## Ví dụ
 ```bash
-pip3 install build
-
-```bash
-python3 -m build
-
-Tải gói thư viện lên PyPI
-```bash
-python3 -m twine upload dist/*
+from vstock_data import StockVNData
+stock = StockVNData(symbol="FPT", interval="B", source="tcbs")
+data = stock.data
