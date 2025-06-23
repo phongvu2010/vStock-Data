@@ -1,14 +1,18 @@
 # pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "vstockvn"
-version = "0.1-demo"
-description = "Thư viện Python tải dữ liệu chứng khoán Việt Nam từ nhiều nguồn khác nhau."
-readme = "README.md"
-requires-python = ">=3.10"
-license = {file="LICENSE"}
+name = "vstock-data"
+version = "1.0.0"
 authors = [
   { name="Hunter Do", email="phongvu2010@gmail.com" }
 ]
+description = "Thư viện Python tải dữ liệu chứng khoán Việt Nam từ nhiều nguồn khác nhau."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file="LICENSE" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -25,6 +29,5 @@ dependencies = [
 "Homepage" = "https://github.com/phongvu2010/vStock-Data"
 "Bug Tracker" = "https://github.com/phongvu2010/vStock-Data/issues"
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["src"]  # Tìm các package trong thư mục 'src'
