@@ -11,5 +11,5 @@ pip install vstock-data
 ```bash
 from vstock_data import StockVNData
 
-stock = StockVNData(symbol="VIC", source="tcbs")
-data = stock.fetch_data(start_date="2023-01-01", end_date="2023-10-01", interval="B")
+stock = StockVNData(symbol="VIC", source="TCBS")
+df = stock.fetch_data(start="2023-01-01", end="2025-10-01", interval="B")

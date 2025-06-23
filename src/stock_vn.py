@@ -2,6 +2,7 @@ import pandas as pd
 import time
 
 from datetime import datetime as dt
+from functools import lru_cache
 
 
 class StockVNData:
@@ -10,7 +11,6 @@ class StockVNData:
         Khởi tạo đối tượng StockVNData.
         Args:
             symbol (str): Mã chứng khoán (ví dụ: "FPT").
-            interval (str, optional): Khoảng thời gian resampling ('B', 'W', 'M'). Mặc định là "B" (ngày làm việc).
             source (str, optional): Nguồn dữ liệu. Chỉ chấp nhận "yfinance", "tcbs", hoặc "bigquery". Mặc định là "yfinance".
             credential (dict, optional): Thông tin xác thực cho BigQuery. Bắt buộc nếu source là "bigquery".
 
@@ -21,37 +21,43 @@ class StockVNData:
         source_lower = source.lower() # Chuyển source thành chữ thường để kiểm tra
 
         if source_lower not in ALLOWED_SOURCES:
-            raise ValueError(f"Nguồn '{source}' không được hỗ trợ. Vui lòng chọn một trong các nguồn sau: {ALLOWED_SOURCES}")
+            raise ValueError(f"Nguồn '{ source }' không được hỗ trợ. Vui lòng chọn một trong các nguồn sau: { ALLOWED_SOURCES }")
 
-        if source_lower == "bigquery" and not credential:
-            raise ValueError(f"Nguồn '{source}' yêu cầu phải có tham số 'credential'.")
+        if source_lower == "bigquery":
+            if not isinstance(credential, dict) or not credential:
+                raise ValueError(f"Nguồn '{ source }' yêu cầu tham số 'credential' phải là một dictionary không rỗng.")
 
         self.symbol = symbol.upper()
-        self.source = source
+        self.source = source_lower
         self.credential = credential
 
+    @lru_cache(maxsize=128)
     def fetch_data(self, start: str = None, end: str = None, interval: str = "B"):
-        if self.source.lower() == "yfinance":
+        if self.source == "yfinance":
             df = self.fetch_data_from_yfinance(start, end)
 
-        elif self.source.lower() == "bigquery":
+        elif self.source == "bigquery":
             df = self.fetch_data_from_bigquery(start, end)
 
-        elif self.source.lower() == "tcbs":
+        elif self.source == "tcbs":
             df = self.fetch_data_from_tcbs(start, end)
 
         else:
-            raise ValueError(f"Nguồn '{self.source}' không được hỗ trợ.")
+            raise ValueError(f"Nguồn '{ self.source }' không được hỗ trợ.")
 
         if df.empty:
-            raise ValueError(f"Dữ liệu '{self.symbol}' không tồn tại từ nguồn '{self.source}'.")
+            raise ValueError(f"Dữ liệu '{ self.symbol }' không tồn tại từ nguồn '{ self.source }'.")
 
-        df.columns = ["Close", "High", "Low", "Open", "Volume"]
+        df.rename(columns = {"close": "Close",
+                             "high": "High",
+                             "low": "Low",
+                             "open": "Open",
+                             "volume": "Volume"}, inplace=True)
         df.index.name = "Date"
         df.index = pd.to_datetime(df.index)
 
         if interval != "B":
-            df = df.resample(self.interval).agg({
+            df = df.resample(interval).agg({
                 "Open": "first", "High": "max", "Low": "min", "Close": "last", "Volume": "sum"
             })
 
@@ -64,12 +70,14 @@ class StockVNData:
         import yfinance as yf
 
         try:
-            return yf.download(
+            df = yf.download(
                 self.symbol + ".VN", start=start, end=end,
                 interval="1d", period="5y", auto_adjust=True, progress=False
             )
+            df.columns = df.columns.droplevel(1)
+            return df
         except Exception as e:
-            raise ValueError(f"Lỗi khi tải dữ liệu từ Yahoo Finance: {str(e)}")
+            raise ValueError(f"Lỗi khi tải dữ liệu từ Yahoo Finance: { str(e) }")
 
     def fetch_data_from_bigquery(self, start = None, end = None):
         """
@@ -81,19 +89,12 @@ class StockVNData:
 
         try:
             service_account = Credentials.from_service_account_info(self.credential)
+            dataset_id = self.credential["dataset_id"]
             client = bigquery.Client(
                 credentials=service_account, location="US"
             )
 
-            statment_date = ""
-            if start is None:
-                statment_date += " AND `Date` >= '" & start & "'"
-
-            if end is None:
-                statment_date += " AND `Date` >= '" & end & "'"
-
-            dataset_id = self.credential["dataset_id"]
-            query_job = client.query(f"""
+            query = f"""
                 SELECT
                     `Date`,
                     `Close Adj` * 1000 AS Close,
@@ -102,24 +103,41 @@ class StockVNData:
                     `Open Adj` * 1000 AS Open,
                     `Volume`
                 FROM `{ dataset_id }.histories`
-                WHERE
-                    `Symbol` = "{ self.symbol }"
-                    { statment_date }
-                ORDER BY Date ASC
-            """)
+                WHERE `Symbol` = @symbol
+            """
+            # Khởi tạo danh sách tham số
+            params = [bigquery.ScalarQueryParameter("symbol", "STRING", self.symbol)]
+
+            # Thêm điều kiện ngày nếu có
+            if start:
+                query += " AND `Date` >= @start_date"
+                params.append(bigquery.ScalarQueryParameter("start_date", "DATE", dt.strptime(start, '%Y-%m-%d').date()))
+
+            if end:
+                query += " AND `Date` <= @end_date"
+                params.append(bigquery.ScalarQueryParameter("end_date", "DATE", dt.strptime(end, '%Y-%m-%d').date()))
+
+            query += " ORDER BY Date ASC"
+
+            # Thiết lập job config với tham số
+            job_config = bigquery.QueryJobConfig(query_parameters=params)
+            query_job = client.query(query, job_config=job_config)
             rows = query_job.result()
 
             return pd.DataFrame([dict(row) for row in rows]).set_index("Date")
         except BadRequest as e:
-            raise ValueError(f"Lỗi khi gọi API BigQuery: {str(e)}")
+            raise ValueError(f"Lỗi khi gọi API BigQuery: { str(e) }")
         except Exception as e:
-            raise ValueError(f"Lỗi khi tải dữ liệu từ BigQuery: {str(e)}")
+            raise ValueError(f"Lỗi khi tải dữ liệu từ BigQuery: { str(e) }")
 
     def fetch_data_from_tcbs(self, start = None, end = None):
         """
             ✅ Tải dữ liệu chứng khoán từ TCBS
         """
         import requests
+
+        from json import JSONDecodeError
+        from requests.exceptions import RequestException
 
         try:
             if start is None: start = "2000-01-01"
@@ -129,11 +147,21 @@ class StockVNData:
             td = int(time.mktime(dt.strptime(end, "%Y-%m-%d").timetuple()))
 
             url = "https://apipubaws.tcbs.com.vn/stock-insight/v1/stock/bars-long-term"
-            data = requests.get(f"{url}?ticker={self.symbol}&type=stock&resolution=D&from={fd}&to={td}")
+            response = requests.get(f"{ url }?ticker={ self.symbol }&type=stock&resolution=D&from={ fd }&to={ td }", timeout=10)
+            response.raise_for_status() # Tự động báo lỗi nếu request không thành công
+            json_data = response.json()
 
-            df = pd.json_normalize(data.json()["data"])
+            if "data" not in json_data or not json_data["data"]:
+                raise ValueError("API của TCBS không trả về dữ liệu.")
+
+            df = pd.json_normalize(json_data["data"])
             df["tradingDate"] = pd.to_datetime(df.tradingDate.str.split("T", expand=True)[0])
+            df["tradingDate"] = pd.to_datetime(df["tradingDate"])
 
             return df.set_index("tradingDate")[["close", "high", "low", "open", "volume"]]
-        except Exception as e:
-            raise ValueError(f"Lỗi khi tải dữ liệu từ TCBS: {str(e)}")
+        except RequestException as e:
+            raise ConnectionError(f"Lỗi khi tải dữ liệu từ TCBS: { str(e) }")
+        except JSONDecodeError:
+            raise ValueError(f"Không thể giải mã JSON từ TCBS. Phản hồi từ server: { response.text }")
+        except (KeyError, IndexError) as e:
+            raise ValueError(f"Cấu trúc dữ liệu trả về từ TCBS không như mong đợi: { str(e) }")

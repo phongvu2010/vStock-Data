@@ -1,2 +1,7 @@
-dist/*
-src/vstock_data.egg-info/*
+__pycache__/
+.venv/
+
+dist/
+src/vstockvn.egg-info/
+
+src/main.py
