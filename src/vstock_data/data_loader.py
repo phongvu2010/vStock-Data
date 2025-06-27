@@ -31,7 +31,7 @@ class StockVNData:
         self.source = source_lower
         self.credential = credential
 
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize = 128)
     def fetch_data(self, start: str = None, end: str = None, interval: str = "B"):
         if self.source == "yfinance":
             df = self.fetch_data_from_yfinance(start, end)
@@ -90,9 +90,7 @@ class StockVNData:
         try:
             service_account = Credentials.from_service_account_info(self.credential)
             dataset_id = self.credential["dataset_id"]
-            client = bigquery.Client(
-                credentials=service_account, location="US"
-            )
+            client = bigquery.Client(credentials=service_account, location="US")
 
             query = f"""
                 SELECT
