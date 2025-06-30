@@ -48,11 +48,9 @@ class StockVNData:
         if df.empty:
             raise ValueError(f"Dữ liệu '{ self.symbol }' không tồn tại từ nguồn '{ self.source }'.")
 
-        df.rename(columns = {"close": "Close",
-                             "high": "High",
-                             "low": "Low",
-                             "open": "Open",
-                             "volume": "Volume"}, inplace=True)
+        df.rename(columns = {
+            "close": "Close", "high": "High", "low": "Low", "open": "Open", "volume": "Volume"
+        }, inplace = True)
         df.index.name = "Date"
         df.index = pd.to_datetime(df.index)
 
@@ -71,8 +69,10 @@ class StockVNData:
 
         try:
             df = yf.download(
-                self.symbol + ".VN", start=start, end=end,
-                interval="1d", period="5y", auto_adjust=True, progress=False
+                self.symbol + ".VN",
+                start=start, end=end,
+                interval="1d", period="5y",
+                auto_adjust=True, progress=False
             )
             df.columns = df.columns.droplevel(1)
             return df
@@ -95,10 +95,10 @@ class StockVNData:
             query = f"""
                 SELECT
                     `Date`,
-                    `Close Adj` * 1000 AS Close,
-                    `High Adj` * 1000 AS High,
-                    `Low Adj` * 1000 AS Low,
-                    `Open Adj` * 1000 AS Open,
+                    `Close Adj` * 1000 AS `Close`,
+                    `High Adj` * 1000 AS `High`,
+                    `Low Adj` * 1000 AS `Low`,
+                    `Open Adj` * 1000 AS `Open`,
                     `Volume`
                 FROM `{ dataset_id }.histories`
                 WHERE `Symbol` = @symbol
@@ -133,7 +133,6 @@ class StockVNData:
             ✅ Tải dữ liệu chứng khoán từ TCBS
         """
         import requests
-
         from json import JSONDecodeError
         from requests.exceptions import RequestException
 
