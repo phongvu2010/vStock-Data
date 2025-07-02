@@ -1,19 +1,29 @@
 # Sơ đồ dự án
+
 vStock-Data/
 ├── src/vstock_data/
 │   ├── __init__.py
 │   └── data_loader.py
-├── LICENSE
+├── tests/
+│   └── test_data_loader.py
+├── pyproject.toml
 ├── README.md
-└── pyproject.toml
+└── LICENSE
 
 # Xây dựng (Build) gói thư viện
-```bash
-pip3 install build, twine
+`pip3 install build, twine`
 
-```bash
-python3 -m build
+`python3 -m build`
 
 Tải gói thư viện lên PyPI
-```bash
-python3 -m twine upload dist/*
+`python3 -m twine upload dist/*`
+
+# Test
+1. Kích hoạt môi trường:
+`python3 -m venv .venv`
+`source .venv/bin/activate`
+`pip3 install --upgrade pip`
+2. (Nếu cần) Cài đặt hoặc cập nhật thư viện:
+`pip install -e ".[dev]"`
+3. Chạy test: `pytest`
+4. Thoát môi trường (khi làm việc xong): `deactivate`

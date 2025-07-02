@@ -8,7 +8,7 @@ from vstock_data import StockVN
 # Sử dụng @pytest.fixture để tạo dữ liệu có thể tái sử dụng trong các test
 @pytest.fixture
 def mock_tcbs_response():
-    """Tạo một đối tượng Mock Response giả lập cho API của TCBS."""
+    """ Tạo một đối tượng Mock Response giả lập cho API của TCBS. """
     mock_resp = Mock()
     mock_resp.raise_for_status.return_value = None
     mock_resp.json.return_value = {
@@ -26,15 +26,14 @@ def mock_tcbs_response():
     return mock_resp
 
 # --- Các Test Case ---
-
 def test_initialization_success():
-    """Kiểm tra xem class có khởi tạo thành công với tham số hợp lệ không."""
+    """ Kiểm tra xem class có khởi tạo thành công với tham số hợp lệ không. """
     stock = StockVN(symbol='FPT', source='tcbs')
     assert stock.symbol == 'FPT'
     assert stock.source == 'tcbs'
 
 def test_initialization_invalid_source():
-    """Kiểm tra xem class có báo lỗi ValueError khi nguồn không hợp lệ."""
+    """ Kiểm tra xem class có báo lỗi ValueError khi nguồn không hợp lệ. """
     with pytest.raises(ValueError) as excinfo:
         StockVN(symbol='FPT', source='invalid_source')
     # Kiểm tra nội dung của thông báo lỗi
@@ -57,7 +56,7 @@ def test_fetch_tcbs_success_mocked(mocker, mock_tcbs_response):
     assert isinstance(df, pd.DataFrame)
     assert not df.empty
     assert len(df) == 2
-    assert list(df.columns) == ['Open', 'High', 'Low', 'Close', 'Volume']
+    assert list(df.columns) == ['Close', 'High', 'Low', 'Open', 'Volume']
     assert df.index.name == 'Date'
     assert df['Close'].iloc[0] == 51.5
 

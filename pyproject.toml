@@ -23,17 +23,11 @@ dependencies = ["pandas", "requests"]
 
 # Các nhóm thư viện tùy chọn
 [project.optional-dependencies]
-yfinance = ["yfinance"]
-bigquery = ["google-cloud-bigquery"]
 all = ["google-cloud-bigquery", "yfinance"]
 dev = ["pytest", "pytest-mock"]
+yfinance = ["yfinance"]
+bigquery = ["google-cloud-bigquery"]
 
 [project.urls]
 "Homepage" = "https://github.com/phongvu2010/vStock-Data"
 "Bug Tracker" = "https://github.com/phongvu2010/vStock-Data/issues"
-
-[tool.setuptools.packages.find]
-where = ["src"]  # Tìm các package trong thư mục "src"
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
