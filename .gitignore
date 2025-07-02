@@ -1,6 +1,7 @@
 __pycache__/
+.pytest_cache/
 .venv/
+.vscode/
 
 dist/
 src/vstock_data.egg-info/
-tests/

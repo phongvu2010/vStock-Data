@@ -1,11 +1,10 @@
-# pyproject.toml
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "vstock-data"
-version = "1.0.1"
+version = "1.0.0"
 authors = [
   { name="Hunter Do", email="phongvu2010@gmail.com" }
 ]
@@ -19,15 +18,22 @@ classifiers = [
     "Operating System :: OS Independent",
     "Topic :: Office/Business :: Financial :: Investment"
 ]
-dependencies = [
-    "pandas",
-    "yfinance",
-    "google-cloud-bigquery"
-]
+# Các thư viện cốt lõi, luôn được cài đặt
+dependencies = ["pandas", "requests"]
+
+# Các nhóm thư viện tùy chọn
+[project.optional-dependencies]
+yfinance = ["yfinance"]
+bigquery = ["google-cloud-bigquery"]
+all = ["google-cloud-bigquery", "yfinance"]
+dev = ["pytest", "pytest-mock"]
 
 [project.urls]
 "Homepage" = "https://github.com/phongvu2010/vStock-Data"
 "Bug Tracker" = "https://github.com/phongvu2010/vStock-Data/issues"
 
 [tool.setuptools.packages.find]
-where = ["src"]  # Tìm các package trong thư mục 'src'
+where = ["src"]  # Tìm các package trong thư mục "src"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

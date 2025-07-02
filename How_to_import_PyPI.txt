@@ -1,3 +1,12 @@
+# Sơ đồ dự án
+vStock-Data/
+├── src/vstock_data/
+│   ├── __init__.py
+│   └── data_loader.py
+├── LICENSE
+├── README.md
+└── pyproject.toml
+
 # Xây dựng (Build) gói thư viện
 ```bash
 pip3 install build, twine

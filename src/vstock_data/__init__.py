@@ -1,1 +1,1 @@
-from .data_loader import StockVNData
+from .data_loader import StockVN
