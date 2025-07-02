@@ -11,7 +11,7 @@ vStock-Data/
 └── LICENSE
 
 # Xây dựng (Build) gói thư viện
-`pip3 install build, twine`
+`pip3 install build twine`
 
 `python3 -m build`
 
